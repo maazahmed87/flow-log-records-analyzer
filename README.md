@@ -135,20 +135,22 @@ FlowAnalyzerRecordsImpl analyzer = new FlowAnalyzerRecordsImpl(config);
 - Java 11+
 - Maven
 - Docker (optional)
+- Input files in the `input` directory
 
 ### Installation
 
 **Using Maven**:
 ```bash
-# Build the project
+# Ensure input files are in the input directory
+# The output directory will be created automatically if it doesn't exist
 mvn clean package
-
-# Run the analyzer
 java -jar target/flow-log-records-analyzer-1.0-SNAPSHOT.jar
 ```
 
 **Docker option**:
 ```bash
+# Ensure input files are in the input directory
+# The output directory will be created automatically in the container
 docker-compose up --build
 ```
 
@@ -158,25 +160,23 @@ docker-compose up --build
 .
 |-- Dockerfile
 |-- README.md
-|-- input
+|-- input/               # Required directory for input files
 |   |-- flowlogs.txt
 |   |-- lookup.csv
 |   `-- protocols.csv
-|-- output
+|-- output/             # Auto-created if missing
 |   |-- portprotocol.csv
 |   `-- tagcount.csv
-`-- src
-    |-- main
-    |   `-- java
-    |       `-- net.networktools.flowlogrecordsanalyzer
-    |           |-- App.java
-    |           |-- config
-    |           |-- model
-    |           |-- service
-    |           `-- util
+`-- src/
+    # ...existing structure...
 ```
 
 ## Configuration
+
+### Directory Structure
+- The `input` directory must exist and contain the required input files
+- The `output` directory will be automatically created if it doesn't exist
+- Output files will be generated in the `output` directory
 
 ### Input Files
 - `lookup.csv`: Maps ports and protocols to tags

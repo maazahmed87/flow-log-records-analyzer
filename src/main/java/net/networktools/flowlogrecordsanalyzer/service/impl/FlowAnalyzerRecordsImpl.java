@@ -16,19 +16,41 @@ import net.networktools.flowlogrecordsanalyzer.model.PortProtocolKey;
 import net.networktools.flowlogrecordsanalyzer.service.FlowAnalyzerService;
 import net.networktools.flowlogrecordsanalyzer.util.InputValidator;
 
+/**
+ * Implementation of FlowAnalyzerService that processes network flow log records.
+ * This class handles the analysis of network traffic patterns by:
+ * - Loading protocol definitions and lookup tables
+ * - Processing flow log entries
+ * - Generating statistics for tags and port-protocol combinations
+ * - Writing analysis results to output files
+ */
 public class FlowAnalyzerRecordsImpl implements FlowAnalyzerService {
     private static final Logger logger = LoggerFactory.getLogger(FlowAnalyzerRecordsImpl.class);
 
+    /** Configuration containing file paths for input/output */
     private final FlowAnalyzerConfig config;
+    /** Maps port-protocol combinations to their corresponding tags */
     private final Map<PortProtocolKey, String> lookupTable = new HashMap<>();
+    /** Maps protocol numbers to protocol names */
     private final Map<Integer, String> protocolMap = new HashMap<>();
+    /** Tracks the count of each tag occurrence */
     private final Map<String, Integer> tagCounts = new HashMap<>();
+    /** Tracks the count of each port-protocol combination */
     private final Map<PortProtocolKey, Integer> portProtocolCounts = new HashMap<>();
 
+    /**
+     * Constructs a new FlowAnalyzerRecordsImpl with the given configuration
+     * @param config Configuration containing necessary file paths
+     */
     public FlowAnalyzerRecordsImpl(FlowAnalyzerConfig config) {
         this.config = config;
     }
 
+    /**
+     * {@inheritDoc}
+     * Loads protocol definitions from CSV file, mapping protocol numbers to names.
+     * Skips invalid entries and handles parsing errors gracefully.
+     */
     @Override
     public void loadProtocols() throws IOException {
         logger.info("Loading protocols from file: {}", config.getProtocolsFilePath());
@@ -52,10 +74,15 @@ public class FlowAnalyzerRecordsImpl implements FlowAnalyzerService {
         logger.info("Loaded {} protocols", protocolMap.size());
     }
 
+    /**
+     * {@inheritDoc}
+     * Loads the lookup table that maps port-protocol combinations to tags.
+     * Expected CSV format: port,protocol,tag
+     */
     @Override
     public void loadLookupTable() throws IOException {
         logger.info("Loading lookup table from file: {}", config.getLookupFilePath());
-        // Load lookup table from file
+        
         try (BufferedReader br = new BufferedReader(new FileReader(config.getLookupFilePath()))) {
             br.readLine(); // Skip header
             br.lines()
@@ -69,6 +96,11 @@ public class FlowAnalyzerRecordsImpl implements FlowAnalyzerService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * Processes each line of the flow logs file, analyzing traffic patterns
+     * and accumulating statistics for both tags and port-protocol combinations.
+     */
     @Override
     public void processFlowLogs() throws IOException {
         logger.info("Processing flow logs from file: {}", config.getFlowLogFilePath());
@@ -81,17 +113,22 @@ public class FlowAnalyzerRecordsImpl implements FlowAnalyzerService {
 
     }
 
+    /**
+     * Processes a single log entry line, extracting port and protocol information
+     * and updating the tag and port-protocol count maps.
+     * @param logLine The log entry line to process
+     */
     private void processLogEntry(String logLine) {
         try {
             String[] parts = logLine.split("\\s+");
 
-            // Validate log entry structure first
+            // Validate log entry structure 
             InputValidator.validateLogEntry(parts);
 
             int dstPort = Integer.parseInt(parts[6]);
             int protocolNum = Integer.parseInt(parts[7]);
 
-            // Additional validations
+            // Additional validations can be added in the future
             InputValidator.validatePort(dstPort);
             InputValidator.validateProtocolNumber(protocolNum);
 
@@ -109,6 +146,12 @@ public class FlowAnalyzerRecordsImpl implements FlowAnalyzerService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * Writes analysis results to two output files:
+     * 1. Tag counts sorted by tag name
+     * 2. Port-protocol combination counts sorted by port and protocol
+     */
     @Override
     public void writeOutput() throws IOException {
         logger.info("Writing tag count output to file: {}", config.getTagCountOutputPath());
@@ -135,6 +178,13 @@ public class FlowAnalyzerRecordsImpl implements FlowAnalyzerService {
                                 e.getValue())));
     }
 
+    /**
+     * Writes sorted data to a CSV file with the specified header
+     * @param outputPath Path to the output file
+     * @param header CSV header line
+     * @param dataStream Stream of formatted data lines
+     * @throws IOException if an I/O error occurs
+     */
     private void writeSortedCsv(String outputPath, String header, Stream<String> dataStream) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(outputPath))) {
             bw.write(header + "\n");

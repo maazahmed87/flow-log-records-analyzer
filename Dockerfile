@@ -7,10 +7,12 @@ WORKDIR /app
 # Copying the Maven project file first to leverage Docker cache
 COPY pom.xml .
 
-# Copying the project source and the input and output directories
+# Copying the project source and input directory
 COPY src ./src
 COPY input ./input
-COPY output ./output
+
+# Create output directory
+RUN mkdir output
 
 # Install Maven
 RUN apt-get update && apt-get install -y maven
