@@ -1,0 +1,11 @@
+services:
+  flow-log-analyzer:
+    build: .
+    volumes:
+      # Map local input directory to container input directory
+      - ./input:/app/input
+      # Map local output directory to container output directory
+      - ./output:/app/output
+    environment:
+      # Optional: Add any environment-specific configurations
+      - LOG_LEVEL=IN
